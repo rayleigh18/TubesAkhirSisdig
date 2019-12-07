@@ -34,34 +34,34 @@ component input512 is
 	);
 end component;
 
-signal enableM, enableQ : std_logic := 0;
+signal enableM, enableQ : std_logic := '0';
 signal m,q :std_logic_vector(511 downto 0);
-signal startIn, endOut : std_logic := 0;
+signal startIn, endOut : std_logic := '0';
 signal res : std_logic_vector(1023 downto 0);
 
 begin
 	mSignal : input512 port map(
-		clk <= clk,
-		enable <= enableM,
-		sw <= sw,
-		butt <= butt,
-		outToTop <= m
+		clk => clk,
+		enable => enableM,
+		sw => sw,
+		butt => butt,
+		outToTop => m
 	);
 	qSignal : input512 port map(
-		clk <= clk,
-		enable <= enableQ,
-		sw <= sw,
-		butt <= butt,
-		outToTop <= q
+		clk => clk,
+		enable => enableQ,
+		sw => sw,
+		butt => butt,
+		outToTop => q
 	);
 
 	mult : multiplier512 port map(
-		m <= m,
-		q <= q,
-		startIn <= startIn,
-		clk <= clk,
-		endOut <= endOut,
-		res <= res
+		m => m,
+		q => q,
+		startIn => startIn,
+		clk => clk,
+		endOut => endOut,
+		res => res
 	);
 
 end tubes;

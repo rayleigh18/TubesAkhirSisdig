@@ -57,14 +57,19 @@ begin
                         if (geser  = '0') then
                             inputState <= mInput;
                         else 
-                            ans(placeUp downto place) <= sw(7 downto 0);
+                            --ans (placeUp downto place) <= sw;
+                            for I in 0 to 511 loop
+								if (I <= placeUp and I >= place) then
+									ans(I) <= sw(I - place);
+								end if;
+							end loop;
                             geser <= '0';
                             place <= place + 8;
                             placeUp <= placeUp + 8;
                         end if;
                 end case;
             elsif (butt(1) = '0') then
-                endInp <= '1';
+                endInpSignal <= '1';
             end if;
 
             outToTop <= ans;
