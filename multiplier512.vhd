@@ -6,11 +6,11 @@ use ieee.std_logic_unsigned.all;
 
 entity multiplier512 is
 	port(
-		m, q : in std_logic_vector(7 downto 0);
+		m, q : in std_logic_vector(511 downto 0);
 		startIn,clk  : in std_logic;
 		endOut        : out std_logic;
-		res  : out std_logic_vector(15 downto 0);
-		aOut, qOut : out std_logic_vector(7 downto 0)
+		res  : out std_logic_vector(1023 downto 0);
+		aOut, qOut : out std_logic_vector(511 downto 0)
 	);
 end multiplier512;
 
@@ -20,10 +20,10 @@ architecture io of multiplier512 is
 	signal endSignal  : std_logic := '0';
 	signal startSignal: std_logic := '0';
 	signal carry      : std_logic := '0';
-	signal qSig       : std_logic_vector(7 downto 0);
-	signal aSig       : std_logic_vector(7 downto 0) := (others => '0');
-	signal buff       : std_logic_vector(8 downto 0) := (others => '0');
-	signal count      : integer := 8;
+	signal qSig       : std_logic_vector(511 downto 0);
+	signal aSig       : std_logic_vector(511 downto 0) := (others => '0');
+	signal buff       : std_logic_vector(512 downto 0) := (others => '0');
+	signal count      : integer := 512;
 	signal r_clk      : std_logic;
 	signal shiftSignal: std_logic;
 	signal addSignal  : std_logic;
@@ -33,54 +33,59 @@ begin
 	process(p_state, clk, count, shiftSignal)
 	begin
 		if (rising_edge(clk)) then
-			case p_state is
-				when check =>
-					if (count > 0) then 
-						if (qSig(0) = '1') then
-							p_state <= add; 
-							addSignal <= '1';
+			if (startIn = '1')  then
+				case p_state is
+					when check =>
+						if (count > 0) then 
+							if (qSig(0) = '1') then
+								p_state <= add; 
+								addSignal <= '1';
+							else
+								p_state <= shift;
+								shiftSignal <= '1';
+							end if;
+							count <= count - 1;
 						else
+							p_state <= keluar;
+						end if;
+					when add =>
+						if addSignal = '1' then
+							buff <= ('0' & m) + ('0' & aSig);
+							addSignal <= '0';
+						else 
+							carry<= buff(512);
+							aSig <= buff(511 downto 0);
 							p_state <= shift;
 							shiftSignal <= '1';
 						end if;
-						count <= count - 1;
-					else
-						p_state <= keluar;
-					end if;
-				when add =>
-					if addSignal = '1' then
-						buff <= ('0' & m) + ('0' & aSig);
-						addSignal <= '0';
-					else 
-						carry<= buff(8);
-						aSig <= buff(7 downto 0);
-						p_state <= shift;
-						shiftSignal <= '1';
-					end if;
-				when shift =>
-					if (shiftSignal = '1') then
-						qSig <= '0' & qSig(7 downto 1);
-						qSig(7) <= aSig(0);
-						aSig <= '0' & aSig(7 downto 1);
-						aSig(7) <= carry;
-						carry <= '0';
-						shiftSignal <= '0';
-					else
+					when shift =>
+						if (shiftSignal = '1') then
+							qSig <= '0' & qSig(511 downto 1);
+							qSig(511) <= aSig(0);
+							aSig <= '0' & aSig(511 downto 1);
+							aSig(511) <= carry;
+							carry <= '0';
+							shiftSignal <= '0';
+						else
+							p_state <= check;
+							shiftSignal <= '0';
+						end if;
+					when init =>
+						qSig <= q;
 						p_state <= check;
-						shiftSignal <= '0';
-					end if;
-				when init =>
-					qSig <= q;
-					p_state <= check;
-					endOut <= '0';
-					--all initiation procedure put here
-				when keluar =>
-					endOut <= '1';
-					p_state <= keluar;
-					res <= aSig & qSig; 
-			end case;
-			aOut <= aSig;
-			qOut <= qSig;
+						endOut <= '0';
+						--all initiation procedure put here
+					when keluar =>
+						endOut <= '1';
+						p_state <= keluar;
+						res <= aSig & qSig; 
+				end case;
+				aOut <= aSig;
+				qOut <= qSig;
+			else 
+				p_state <= init;
+				res <= (others => '0');
+			end if;
 		end if;
 	end process;
 
